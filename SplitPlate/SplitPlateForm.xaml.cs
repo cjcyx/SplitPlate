@@ -174,7 +174,14 @@ namespace SplitPlate
             {
                 OnBot();
                 ArrayList list = new ArrayList();
-                list.Add("!!SplitObject.GetPostion('" + PaneRef.Text + "')");
+                if (splitOnly.IsChecked == true)
+                {
+                    list.Add("!!SplitObject.GetPostion('" + PaneRef.Text + "')");
+                }
+                else
+                {
+                    list.Add("!!SplitObject.GetPostionSplitOnly('" + PaneRef.Text + "')");
+                }
                 eventInvok(list);
             }
         }
