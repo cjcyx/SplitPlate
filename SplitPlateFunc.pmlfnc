@@ -1,0 +1,13 @@
+define function !!SplitPlateFunc()
+	!!SplitPlate.Start()
+	handle any
+		import 'SplitPlate'
+		handle any
+		endhandle
+		using namespace 'SplitPlate'
+		!!SplitPlate = object RunSplitPlate()
+		!!SplitObject = object SplitPlate()
+		!handle = !!SplitPlate.addeventhandler('PmlNetEvent' , !!SplitObject , 'callback')
+		!!SplitPlate.Start()
+	endhandle
+ENDFUNCTION
