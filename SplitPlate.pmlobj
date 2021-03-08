@@ -1,6 +1,7 @@
 
 define object SplitPlate
 	member .pointCount is real
+	member .dataPoint is EDGPOSITIONDATA
 endobject
 
 define method .AddCircel(!center is string,!diam is real)
@@ -18,12 +19,14 @@ endmethod
 
 define method .AddSquare(!center is string,!xLen is real,!yLen is real,!ang is real)
 	!pos = $!center
+	!tmp = !center.split(' ')
+	!ref = !tmp[7]
 	!xLen1 = !XLen / 2
 	!yLen1 = !yLen / 2
-	!pos1 = !pos.offset(E$!ang N,$!xLen1).offset(E ( $!ang + 90 ) N,$!yLen1)
-	!pos2 = !pos.offset(E$!ang N,$!xLen1).offset(E ( $!ang - 90 ) N,$!yLen1)
-	!pos3 = !pos.offset(E($!ang + 180 )N,$!xLen1).offset(E ( $!ang - 90 ) N,$!yLen1)
-	!pos4 = !pos.offset(E($!ang + 180 )N,$!xLen1).offset(E ( $!ang + 90 ) N,$!yLen1)
+	!pos1 = !pos.offset(E$!ang N wrt $!ref,$!xLen1).offset(E ( $!ang + 90 ) N wrt $!ref,$!yLen1)
+	!pos2 = !pos.offset(E$!ang N wrt $!ref,$!xLen1).offset(E ( $!ang - 90 ) N wrt $!ref,$!yLen1)
+	!pos3 = !pos.offset(E($!ang + 180 )N wrt $!ref,$!xLen1).offset(E ( $!ang - 90 ) N wrt $!ref,$!yLen1)
+	!pos4 = !pos.offset(E($!ang + 180 )N wrt $!ref,$!xLen1).offset(E ( $!ang + 90 ) N wrt $!ref,$!yLen1)
 	aid line num 20615 $!pos1 to $!pos2
 	aid line num 20615 $!pos2 to $!pos3
 	aid line num 20615 $!pos3 to $!pos4
@@ -31,16 +34,17 @@ define method .AddSquare(!center is string,!xLen is real,!yLen is real,!ang is r
 endmethod
 
 define method .AddAID(!posStr is string,!ang is real)
+	!tmp = !posStr.split(' ')
+	!ref = !tmp[7]
 	!pos = $!posStr
-	--!pos.up = 0
-	!pos1 = !pos.offset(E$!ang N,1000)
-	!pos2 = !pos.offset(E($!ang + 180 )N,1000)
+	!pos1 = !pos.offset(E$!ang N wrt $!ref,1000)
+	!pos2 = !pos.offset(E($!ang + 180 )N wrt $!ref,1000)
 	aid line num 20592 $!pos1 to $!pos2
-	!post1 = !pos.offset(E0N,200)
-	!post2 = !pos.offset(E90N,200)
-	!post3 = !pos.offset(E180N,200)
-	!post4 = !pos.offset(E270N,200)
-	!post5 = !pos.offset(E$!ang N,200)
+	!post1 = !pos.offset(E0N wrt $!ref,200)
+	!post2 = !pos.offset(E90N wrt $!ref,200)
+	!post3 = !pos.offset(E180N wrt $!ref,200)
+	!post4 = !pos.offset(E270N wrt $!ref,200)
+	!post5 = !pos.offset(E$!ang N wrt $!ref,200)
 	AID TEXT NUMB 20592 '0' AT $!post1      
 	AID TEXT NUMB 20592 '90' AT $!post2    
 	AID TEXT NUMB 20592 '180' AT $!post3    
@@ -121,21 +125,27 @@ define method .GetPostionSplitOnly(!ref is string)
 	--!packet.close = '!!SplitPlate.ChooseClose()'
 	!!edgCntrl.add(!packet)
 	show !!EDGNEWPOSITIONING
-	if ( Unset(!this.pointCount) ) then
-		!this.pointCount = 1
-	else
-		!this.pointCount = real()
-	endif
 endmethod
 
 define method .CalCulatePositionSplitOnly(!data is EDGPOSITIONDATA,!ref is string)
-	
-	q var !data
 	if ( Unset(!this.pointCount) ) then
-		!!edgCntrl.remove(!ref)		
-	else
-		!!alert.message('请捕捉下一点')
-		!this.GetPostionSplitOnly(!ref)	
+		!this.pointCount = 1
+		!!alert.message('Please choose the next point.')
+		!this.dataPoint = !data
+	else		
+		!this.pointCount = real()
+		!pos = !data.position
+		!pos = !pos.wrt($!ref)		
+		!pos1 = !this.dataPoint.position			
+		!line = !pos1.line(!pos)	
+		!pos1 = !pos1.offset(!line.direction(),5)
+		!pos1 = !pos1.wrt($!ref)
+		!dir = N wrt $!ref
+		!angle = !line.direction().angle(!dir) + 90
+		!e = !pos1.East
+	  !n = !pos1.North	  
+		!!edgCntrl.remove(!ref)
+		!!SplitPlate.SplitOnlyGetPoint('$!e','$!n',!angle)
 	endif
 endmethod
 

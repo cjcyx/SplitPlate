@@ -56,18 +56,24 @@ namespace SplitPlate
         {
             mw.ePOS.Tag = Math.Round(Convert.ToDouble(E.Replace("mm", "")), 3);
             mw.nPOS.Tag = Math.Round(Convert.ToDouble(N.Replace("mm", "")), 3);
-            if (mw.splitOnly.IsChecked == false)
+            double xlen = Convert.ToDouble(x.Replace("mm", ""));
+            double ylen = Convert.ToDouble(y.Replace("mm", ""));
+            if (xlen != 0)
             {
-                double xlen = Convert.ToDouble(x.Replace("mm", ""));
-                double ylen = Convert.ToDouble(y.Replace("mm", ""));
-                if (xlen != 0)
-                {
-                    mw.xLen.Text = xlen.ToString("F3");
-                    mw.yLen.Text = ylen.ToString("F3");
-                }
-                mw.ReAddLine();
-                //mw.OnTop();
+                mw.xLen.Text = xlen.ToString("F3");
+                mw.yLen.Text = ylen.ToString("F3");
             }
+            mw.ReAddLine();
+            mw.OnTop();
+        }
+        [PMLNetCallable()]
+        public void SplitOnlyGetPoint(string E, string N, double angle)
+        {
+            mw.ePOS.Tag = Math.Round(Convert.ToDouble(E.Replace("mm", "")), 3);
+            mw.nPOS.Tag = Math.Round(Convert.ToDouble(N.Replace("mm", "")), 3);
+            mw.ang.Text = angle.ToString("F0");
+            mw.ReAddLine();
+            mw.OnTop();
         }
         [PMLNetCallable()]
         public void ChooseClose()
@@ -90,13 +96,36 @@ namespace SplitPlate
             double splitDist = 0;
             double splitCount = 0;
             Pave center = new Pave(Convert.ToDouble(mw.ePOS.Text) + (double)mw.ePOS.Tag, Convert.ToDouble(mw.nPOS.Text) + (double)mw.nPOS.Tag, -r);
-            if (mw.splitOnly.IsChecked == true && Convert.ToDouble(mw.yLen.Text) > 1)
+            double ang = (Convert.ToDouble(mw.ang.Text) % 180) * Math.PI / 180;
+            if (mw.splitOnly.IsChecked == true)
             {
+                var dist = Convert.ToDouble(mw.dist.Text);
+                dist = dist/2;
                 splitDist = Convert.ToDouble(mw.xLen.Text);
                 splitCount = Convert.ToDouble(mw.yLen.Text);
-                multiSp = true;
+                double splitDistAbs = Math.Abs(splitDist);
+                double xm = center.pointx;
+                double ym = center.pointy;
+                double xm1;
+                double ym1;
+                double deltXm = (dist + splitDistAbs) * Math.Sin(ang);
+                double deltYm = -(dist + splitDistAbs) * Math.Cos(ang);
+                if (splitDist > 0)
+                {
+                    xm1 = xm + deltXm;
+                    ym1 = ym + deltYm;
+                }
+                else
+                {
+                    xm1 = xm - deltXm;
+                    ym1 = ym - deltYm;
+                }
+                center = new Pave(xm1, ym1, center.radius);
+                if (Convert.ToDouble(mw.yLen.Text) > 1)
+                {
+                    multiSp = true;
+                }
             }
-            double ang = (Convert.ToDouble(mw.ang.Text) % 180) * Math.PI / 180;
             ArrayList returnCommands = new ArrayList();
             Funcs.ReturnCommands(ref returnCommands,mw.fang.IsChecked, mw.yuan.IsChecked, orangePave, center, Convert.ToDouble(mw.dist.Text), r, distFx, distFy, ang, mw.PaneRef.Text, multiSp, splitDist, splitCount);
             //MessageBox.Show(Splited.Count.ToString() + " " + orangePave.Count.ToString());
@@ -640,7 +669,7 @@ namespace SplitPlate
             }
             if (multiSplit)
             {
-                if(splitCount >2)
+                if(splitCount >1)
                 {
                     double splitDistAbs = Math.Abs(splitDist);
                     double xm = center.pointx;
@@ -688,7 +717,7 @@ namespace SplitPlate
                     }
                     #endregion 
                     splitCount--;
-                    if (splitCount == 2) 
+                    if (splitCount == 1) 
                     {
                         multiSplit = false;
                     }

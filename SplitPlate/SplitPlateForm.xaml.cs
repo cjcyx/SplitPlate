@@ -85,7 +85,6 @@ namespace SplitPlate
             list.Add("!!SplitObject.OnClose()");
             eventInvok(list);
         }
-
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             ArrayList list = new ArrayList();
@@ -118,15 +117,27 @@ namespace SplitPlate
                 double e = Convert.ToDouble(ePOS.Text) + (double)ePOS.Tag;
                 double n = Convert.ToDouble(nPOS.Text) + (double)nPOS.Tag;
                 double distLen = Convert.ToDouble(dist.Text);
-                if (splitOnly.IsChecked == true && Convert.ToDouble(yLen.Text) > 1)
+                if (splitOnly.IsChecked == true && Convert.ToDouble(yLen.Text) > 0)
                 {
                     double splitDist = Convert.ToDouble(xLen.Text);
                     double splitDistAbs = Math.Abs(splitDist);
-                    for (int i = 1; i < Convert.ToDouble(yLen.Text); i++)
+                    double delte = (distLen / 2 + splitDistAbs) * Math.Sin(angl);
+                    double deltn = -(distLen / 2 + splitDistAbs) * Math.Cos(angl);
+                    if (splitDist > 0)
+                    {
+                        e += delte;
+                        n += deltn;
+                    }
+                    else
+                    {
+                        e -= delte;
+                        n -= deltn;
+                    }
+                    for (int i = 0; i < Convert.ToDouble(yLen.Text); i++)
                     {
                         list.Add("!!SplitObject.AddAID('E " + e.ToString() + " N " + n.ToString() + " U0 wrt " + PaneRef.Text + "'," + angle.ToString() + ")");
-                        double delte = (distLen + splitDistAbs) * Math.Sin(angl);
-                        double deltn = -(distLen + splitDistAbs) * Math.Cos(angl);
+                         delte = (distLen + splitDistAbs) * Math.Sin(angl);
+                        deltn = -(distLen + splitDistAbs) * Math.Cos(angl);
                         if (splitDist > 0)
                         {
                             e += delte;
@@ -174,7 +185,7 @@ namespace SplitPlate
             {
                 OnBot();
                 ArrayList list = new ArrayList();
-                if (splitOnly.IsChecked == true)
+                if (splitOnly.IsChecked != true)
                 {
                     list.Add("!!SplitObject.GetPostion('" + PaneRef.Text + "')");
                 }
@@ -185,7 +196,6 @@ namespace SplitPlate
                 eventInvok(list);
             }
         }
-
         private void Checked(object sender, RoutedEventArgs e)
         {
             if (yuan.IsChecked == true)
@@ -213,13 +223,13 @@ namespace SplitPlate
             else
             {
                 xF.Text = "板宽";
-                yF.Text = "板数量";
+                yF.Text = "分割次数";
                 xLen.Visibility = Visibility.Visible;
                 yLen.Visibility = Visibility.Visible;
                 xLen.IsEnabled = true;
                 yLen.IsEnabled = true;
+                yLen.Text = "1";
                 xLen.Text = "995";
-                yLen.Text = "2";
                 Change.Visibility = Visibility.Collapsed;
                 RemoveAidCircle();
             }
@@ -257,8 +267,8 @@ namespace SplitPlate
                     double y1 = Convert.ToDouble(yLen.Text) + 2 * Convert.ToDouble(dist1.Text);
                     double angle = Convert.ToDouble(ang.Text);
                     list.Add("!!SplitObject.ClearAIDCirc()");
-                    list.Add("!!SplitObject.AddSquare('E " + e.ToString() + " N " + n.ToString() + " U0 wrt " + PaneRef.Text + "'," + x.ToString () + ", " + y.ToString ()+","+angle.ToString ()+" )");
-                    list.Add("!!SplitObject.AddSquare('E " + e.ToString() + " N " + n.ToString() + " U0 wrt " + PaneRef.Text + "'," + x1.ToString() + ", " + y1.ToString() + ", "+angle.ToString ()+")");
+                    list.Add("!!SplitObject.AddSquare('E " + e.ToString() + " N " + n.ToString() + " U0 wrt " + PaneRef.Text + "'," + x.ToString() + ", " + y.ToString() + "," + angle.ToString() + " )");
+                    list.Add("!!SplitObject.AddSquare('E " + e.ToString() + " N " + n.ToString() + " U0 wrt " + PaneRef.Text + "'," + x1.ToString() + ", " + y1.ToString() + ", " + angle.ToString() + ")");
                     eventInvok(list);
                 }
             }
